@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.8%2B-green.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-009688?logo=fastapi)
 
-[🇬🇧 **English version**](README_EN.md)
+[en **English version**](README_EN.md)
 
 Этот проект предоставляет простой и удобный веб-интерфейс для генерации по-настоящему случайных чисел с использованием **квантовой энтропии** от [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/).
 
