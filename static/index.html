@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quantum Random Generator</title>
+  <title>Quantum True Random Generator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -21,42 +21,59 @@
 
     <div class="w-full md:w-auto">
       <label for="mode" class="block mb-1" id="mode_label">
-        Mode: <span title="Limited Range – generates values in a range. Infinite – one large bit-length number.">❓</span>
+        Mode: <span title="Limited Range – generates values in a range; Infinite – one large bit-length number; Password – generates a random password.">❓</span>
       </label>
       <select id="mode" class="p-2 text-black rounded">
         <option value="limited">Limited Range</option>
         <option value="infinite">Infinite (bit-size)</option>
+        <option value="password">Password</option>
       </select>
     </div>
+  </div>
 
-    <div id="limited_fields" class="flex flex-wrap gap-2">
-      <div>
-        <label for="min" class="block text-sm" id="min_label">Min:</label>
-        <input id="min" class="p-2 text-black rounded" type="number" value="0" placeholder="Min" title="Minimum value" />
-      </div>
-      <div>
-        <label for="max" class="block text-sm" id="max_label">Max:</label>
-        <input id="max" class="p-2 text-black rounded" type="number" value="10000" placeholder="Max" title="Maximum value" />
-      </div>
-      <div>
-        <label for="count" class="block text-sm" id="count_label">Count:</label>
-        <input id="count" class="p-2 text-black rounded" type="number" value="10" placeholder="Count" title="How many numbers" />
-      </div>
+  <!-- Fields for Limited Range mode -->
+  <div id="limited_fields" class="flex flex-wrap gap-2 mt-4">
+    <div>
+      <label for="min" class="block text-sm" id="min_label">Min:</label>
+      <input id="min" class="p-2 text-black rounded" type="number" value="0" placeholder="Min" title="Minimum value" />
     </div>
-
-    <div id="infinite_fields" class="hidden">
-      <label id="bits_label">Bit length:</label>
-      <input id="bitLength" type="range" min="8" max="4096" step="8" value="128" class="w-full" />
-      <span id="bitValue" class="ml-2">128</span> <span id="bit_text">bits</span>
+    <div>
+      <label for="max" class="block text-sm" id="max_label">Max:</label>
+      <input id="max" class="p-2 text-black rounded" type="number" value="10000" placeholder="Max" title="Maximum value" />
     </div>
+    <div>
+      <label for="count" class="block text-sm" id="count_label">Count:</label>
+      <input id="count" class="p-2 text-black rounded" type="number" value="10" placeholder="Count" title="How many numbers" />
+    </div>
+  </div>
 
-    <div class="w-full md:w-auto">
-      <label id="format_label" class="block mb-1">Format:</label>
-      <select id="format" class="p-2 text-black rounded">
-        <option value="dec">Decimal</option>
-        <option value="hex">Hex</option>
-        <option value="bin">Binary</option>
-        <option value="base64">Base64</option>
+  <!-- Fields for Infinite mode -->
+  <div id="infinite_fields" class="hidden mt-4">
+    <label id="bits_label">Bit length:</label>
+    <input id="bitLength" type="range" min="8" max="4096" step="8" value="128" class="w-full" />
+    <span id="bitValue" class="ml-2">128</span> <span id="bit_text">bits</span>
+  </div>
+
+  <!-- Fields for Password mode -->
+  <div id="password_fields" class="hidden mt-4 flex flex-wrap gap-2">
+    <div>
+      <label id="password_length_label" for="password_length" class="block text-sm">Password Length:</label>
+      <input id="password_length" class="p-2 text-black rounded" type="number" value="12" placeholder="Length" title="Length of the password" />
+    </div>
+    <div>
+      <label id="password_complexity_label" for="password_complexity" class="block text-sm">Password Complexity:</label>
+      <select id="password_complexity" class="p-2 text-black rounded">
+        <option value="low">Low (a-z)</option>
+        <option value="medium" selected>Medium (a-z, A-Z, 0-9)</option>
+        <option value="high">High (a-z, A-Z, 0-9, symbols)</option>
+      </select>
+    </div>
+    <div>
+      <label id="cipher_method_label" for="cipher_method" class="block text-sm">Cipher Method:</label>
+      <select id="cipher_method" class="p-2 text-black rounded">
+        <option value="direct" selected>Direct</option>
+        <option value="rot13">ROT13</option>
+        <option value="reversed">Reversed</option>
       </select>
     </div>
   </div>
@@ -81,7 +98,7 @@
     </button>
   </div>
 
-<div class="w-full max-w-4xl mt-8">
+  <div class="w-full max-w-4xl mt-8">
     <h2 class="text-xl font-semibold mb-2">Output</h2>
     <pre id="output" class="bg-black p-4 rounded overflow-auto whitespace-pre-wrap"></pre>
     <button onclick="exportResult()" class="mt-2 bg-green-600 hover:bg-green-700 px-4 py-1 rounded">
@@ -101,7 +118,6 @@
         mode_label: "Режим:",
         bits_label: "Длина (бит):",
         bit_text: "бит",
-        format_label: "Формат:",
         generate_btn: "Генерировать",
         strict_label: "Строгая проверка",
         minEntropy_label: "Мин. энтропия:",
@@ -114,14 +130,16 @@
           max: "Максимальное значение диапазона",
           count: "Количество значений для генерации (до 2048)",
           strict: "Если включено, данные будут отклонены, если они недостаточно случайны."
-        }
+        },
+        password_length_label: "Длина пароля:",
+        password_complexity_label: "Сложность пароля:",
+        cipher_method_label: "Метод шифрования:"
       },
       en: {
         title: "Quantum True Random Generator",
         mode_label: "Mode:",
         bits_label: "Bit length:",
         bit_text: "bits",
-        format_label: "Format:",
         generate_btn: "Generate",
         strict_label: "Strict Validation",
         minEntropy_label: "Min Entropy:",
@@ -134,7 +152,10 @@
           max: "Maximum value in the range",
           count: "How many random numbers to generate (up to 2048)",
           strict: "If enabled, results must meet entropy and compression standards."
-        }
+        },
+        password_length_label: "Password Length:",
+        password_complexity_label: "Password Complexity:",
+        cipher_method_label: "Cipher Method:"
       }
     };
 
@@ -176,8 +197,10 @@
       el.onchange = saveSettings;
     });
     document.getElementById("mode").onchange = function () {
-      document.getElementById("limited_fields").classList.toggle("hidden", this.value !== "limited");
-      document.getElementById("infinite_fields").classList.toggle("hidden", this.value !== "infinite");
+      const mode = this.value;
+      document.getElementById("limited_fields").classList.toggle("hidden", mode !== "limited");
+      document.getElementById("infinite_fields").classList.toggle("hidden", mode !== "infinite");
+      document.getElementById("password_fields").classList.toggle("hidden", mode !== "password");
     };
     document.getElementById("bitLength").oninput = function () {
       document.getElementById("bitValue").textContent = this.value;
@@ -185,7 +208,7 @@
  
     async function generate() {
       const mode = document.getElementById("mode").value;
-      const format = document.getElementById("format").value;
+      const format = document.getElementById("format") ? document.getElementById("format").value : "dec";
       const data = {
         mode,
         format,
@@ -198,8 +221,12 @@
         data.min = document.getElementById("min").value;
         data.max = document.getElementById("max").value;
         data.count = document.getElementById("count").value;
-      } else {
+      } else if (mode === "infinite") {
         data.bits = document.getElementById("bitLength").value;
+      } else if (mode === "password") {
+        data.password_length = document.getElementById("password_length").value;
+        data.password_complexity = document.getElementById("password_complexity").value;
+        data.cipher_method = document.getElementById("cipher_method").value;
       }
 
       const res = await fetch('/generate', {
@@ -212,6 +239,7 @@
       output.textContent = JSON.stringify(json, null, 2);
 
       if (json.numbers) drawChart(json.numbers);
+      else if (json.password) drawChart([]); // Очищаем диаграмму, если сгенерирован пароль
     }
 
     function exportResult() {
