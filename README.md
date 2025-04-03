@@ -8,6 +8,47 @@
 
 Это веб-приложение предоставляет гибкий интерфейс для генерации **истинно случайных чисел** с использованием квантовой энтропии, получаемой с [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/). Приложение реализует несколько режимов генерации и шифрования, включая демонстрационное постквантовое шифрование (PQ) на основе алгоритма Kyber и AES-GCM.
 
+```mermaid
+flowchart TD
+    A["User Interface (Browser)"]
+    B["Choose Mode"]
+    C1["Limited Mode: Input Range (min, max, count)"]
+    C2["Infinite Mode: Input Bit Length"]
+    C3["Password Mode: Input Password Settings"]
+    D1["Fetch Quantum Random Bytes (ANU API / os.urandom)"]
+    D2["Fetch Quantum Random Bytes (ANU API / os.urandom)"]
+    D3["Fetch Quantum Random Bytes (ANU API / os.urandom)"]
+    E1["Generate Random Numbers"]
+    E2["Generate Big Number"]
+    E3["Generate Password"]
+    F3["Optional Encryption (Direct, ROT13, Reversed, AES, PQ)"]
+    G["Validate Randomness (Entropy, Compression Ratio, χ²-Test)"]
+    H["Form JSON Response"]
+    I["Display Result in Browser"]
+
+    A --> B
+    B -- "Limited" --> C1
+    B -- "Infinite" --> C2
+    B -- "Password" --> C3
+
+    C1 --> D1
+    C2 --> D2
+    C3 --> D3
+
+    D1 --> E1
+    D2 --> E2
+    D3 --> E3
+
+    E1 --> G
+    E2 --> G
+    E3 --> F3
+    F3 --> G
+
+    G --> H
+    H --> I
+
+```
+
 ---
 
 ## 🚀 Возможности
