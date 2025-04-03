@@ -1,139 +1,260 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Quantum True Random Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            line-height: 1.6;
-        }
-        select, input {
-            padding: 5px;
-            margin: 5px;
-        }
-        button {
-            padding: 8px 15px;
-            margin-top: 15px;
-            cursor: pointer;
-        }
-        .field-group {
-            margin-bottom: 15px;
-        }
-        label {
-            margin-right: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quantum Random Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-<h2 id="title">Квантовый генератор случайных чисел</h2>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-6">
+  <h1 class="text-3xl font-bold mb-6 text-center" id="title">Quantum True Random Generator</h1>
 
-<div class="field-group">
-    <label for="lang">🌐 Язык:</label>
-    <select id="lang" onchange="setLanguage(this.value)">
-        <option value="ru">🇷🇺 Русский</option>
-        <option value="en">en English</option>
-    </select>
-</div>
+  <div class="flex flex-wrap justify-center gap-4 w-full max-w-3xl">
+    <div class="w-full md:w-auto">
+      <label for="lang" class="block mb-1">Language:</label>
+      <select id="lang" class="p-2 text-black rounded">
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+      </select>
+    </div>
 
-<div class="field-group">
-    <label for="mode" id="mode_label">Режим:</label>
-    <select id="mode">
-        <option value="limited">Ограниченный диапазон</option>
-        <option value="infinite">Истинный бесконечный режим</option>
-    </select>
-</div>
+    <div class="w-full md:w-auto">
+      <label for="mode" class="block mb-1" id="mode_label">
+        Mode: <span title="Limited Range – generates values in a range. Infinite – one large bit-length number.">❓</span>
+      </label>
+      <select id="mode" class="p-2 text-black rounded">
+        <option value="limited">Limited Range</option>
+        <option value="infinite">Infinite (bit-size)</option>
+      </select>
+    </div>
 
-<div id="limited_fields" class="field-group">
-    <label id="min_label">Мин:</label>
-    <input id="min" type="number" value="0">
-    <label id="max_label">Макс:</label>
-    <input id="max" type="number" value="10000">
-    <label id="count_label">Кол-во:</label>
-    <input id="count" type="number" value="10">
-</div>
+    <div id="limited_fields" class="flex flex-wrap gap-2">
+      <div>
+        <label for="min" class="block text-sm" id="min_label">Min:</label>
+        <input id="min" class="p-2 text-black rounded" type="number" value="0" placeholder="Min" title="Minimum value" />
+      </div>
+      <div>
+        <label for="max" class="block text-sm" id="max_label">Max:</label>
+        <input id="max" class="p-2 text-black rounded" type="number" value="10000" placeholder="Max" title="Maximum value" />
+      </div>
+      <div>
+        <label for="count" class="block text-sm" id="count_label">Count:</label>
+        <input id="count" class="p-2 text-black rounded" type="number" value="10" placeholder="Count" title="How many numbers" />
+      </div>
+    </div>
 
-<div id="infinite_fields" class="field-group" style="display:none;">
-    <label id="bits_label">Число битов:</label>
-    <input id="bitLength" type="range" min="8" max="4096" step="8" value="128" oninput="bitValue.textContent=value">
-    <span id="bitValue">128</span> <span id="bit_text">бит</span>
-</div>
+    <div id="infinite_fields" class="hidden">
+      <label id="bits_label">Bit length:</label>
+      <input id="bitLength" type="range" min="8" max="4096" step="8" value="128" class="w-full" />
+      <span id="bitValue" class="ml-2">128</span> <span id="bit_text">bits</span>
+    </div>
 
-<div class="field-group">
-    <label id="format_label">Формат числа:</label>
-    <select id="format">
-        <option value="dec">DEC</option>
-        <option value="hex">HEX</option>
-        <option value="bin">BIN</option>
+    <div class="w-full md:w-auto">
+      <label id="format_label" class="block mb-1">Format:</label>
+      <select id="format" class="p-2 text-black rounded">
+        <option value="dec">Decimal</option>
+        <option value="hex">Hex</option>
+        <option value="bin">Binary</option>
         <option value="base64">Base64</option>
-    </select>
-</div>
+      </select>
+    </div>
+  </div>
 
-<button onclick="generate()" id="generate_btn">Генерировать</button>
+  <div class="w-full max-w-3xl mt-4 flex flex-wrap items-center gap-4">
+    <label class="flex items-center">
+      <input type="checkbox" id="strictValidation" checked class="mr-2" />
+      <span id="strict_label">Strict Validation</span>
+      <span title="If enabled, results must meet entropy and compression standards.">❗</span>
+    </label>
+    <label>
+      <span id="minEntropy_label">Min Entropy:</span>
+      <input id="minEntropy" type="number" value="7.0" step="0.1" min="0" max="8" class="p-1 rounded text-black w-20 ml-1" title="Minimum entropy threshold. Max 8 bits/byte = perfect randomness." />
+    </label>
+    <label>
+      <span id="maxCompression_label">Max Compression:</span>
+      <input id="maxCompression" type="number" value="1.3" step="0.1" min="1" max="10" class="p-1 rounded text-black w-24 ml-1" title="Max allowed compression ratio. Lower = more random." />
+    </label>
 
-<pre id="output"></pre>
+    <button onclick="generate()" id="generate_btn" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded text-white">
+      Generate
+    </button>
+  </div>
 
-<script>
-const translations = {
-    "ru": {
-        "title": "Квантовый генератор случайных чисел",
-        "mode_label": "Режим:",
-        "min_label": "Мин:",
-        "max_label": "Макс:",
-        "count_label": "Кол-во:",
-        "bits_label": "Число битов:",
-        "bit_text": "бит",
-        "format_label": "Формат числа:",
-        "generate_btn": "Генерировать"
-    },
-    "en": {
-        "title": "Quantum Random Number Generator",
-        "mode_label": "Mode:",
-        "min_label": "Min:",
-        "max_label": "Max:",
-        "count_label": "Count:",
-        "bits_label": "Bit length:",
-        "bit_text": "bits",
-        "format_label": "Number format:",
-        "generate_btn": "Generate"
+<div class="w-full max-w-4xl mt-8">
+    <h2 class="text-xl font-semibold mb-2">Output</h2>
+    <pre id="output" class="bg-black p-4 rounded overflow-auto whitespace-pre-wrap"></pre>
+    <button onclick="exportResult()" class="mt-2 bg-green-600 hover:bg-green-700 px-4 py-1 rounded">
+      💾 Download JSON
+    </button>
+  </div>
+
+  <div class="w-full max-w-4xl mt-10">
+    <h2 class="text-xl font-semibold mb-2">Distribution</h2>
+    <canvas id="histogram" height="100"></canvas>
+  </div>
+
+  <script>
+    const translations = {
+      ru: {
+        title: "Квантовый генератор истинной случайности",
+        mode_label: "Режим:",
+        bits_label: "Длина (бит):",
+        bit_text: "бит",
+        format_label: "Формат:",
+        generate_btn: "Генерировать",
+        strict_label: "Строгая проверка",
+        minEntropy_label: "Мин. энтропия:",
+        maxCompression_label: "Макс. сжатие:",
+        min_label: "Мин:",
+        max_label: "Макс:",
+        count_label: "Кол-во:",
+        tooltips: {
+          min: "Минимальное значение диапазона",
+          max: "Максимальное значение диапазона",
+          count: "Количество значений для генерации (до 2048)",
+          strict: "Если включено, данные будут отклонены, если они недостаточно случайны."
+        }
+      },
+      en: {
+        title: "Quantum True Random Generator",
+        mode_label: "Mode:",
+        bits_label: "Bit length:",
+        bit_text: "bits",
+        format_label: "Format:",
+        generate_btn: "Generate",
+        strict_label: "Strict Validation",
+        minEntropy_label: "Min Entropy:",
+        maxCompression_label: "Max Compression:",
+        min_label: "Min:",
+        max_label: "Max:",
+        count_label: "Count:",
+        tooltips: {
+          min: "Minimum value in the range",
+          max: "Maximum value in the range",
+          count: "How many random numbers to generate (up to 2048)",
+          strict: "If enabled, results must meet entropy and compression standards."
+        }
+      }
+    };
+
+    function setLanguage(lang) {
+      localStorage.setItem("lang", lang);
+      for (const key in translations[lang]) {
+        if (key !== "tooltips") {
+          const el = document.getElementById(key);
+          if (el) el.innerText = translations[lang][key];
+        }
+      }
+      document.getElementById("min").title = translations[lang].tooltips.min;
+      document.getElementById("max").title = translations[lang].tooltips.max;
+      document.getElementById("count").title = translations[lang].tooltips.count;
+      document.getElementById("strictValidation").title = translations[lang].tooltips.strict;
     }
-};
 
-function setLanguage(lang) {
-    for (const id in translations[lang]) {
-        document.getElementById(id).innerText = translations[lang][id];
+    function saveSettings() {
+      localStorage.setItem("strict", document.getElementById("strictValidation").checked);
+      localStorage.setItem("minEntropy", document.getElementById("minEntropy").value);
+      localStorage.setItem("maxCompression", document.getElementById("maxCompression").value);
     }
-}
 
-document.getElementById("mode").onchange = function() {
-    document.getElementById("limited_fields").style.display = (this.value === "limited") ? "block" : "none";
-    document.getElementById("infinite_fields").style.display = (this.value === "limited") ? "none" : "block";
-};
+    function loadSettings() {
+      const savedLang = localStorage.getItem("lang") || "en";
+      document.getElementById("lang").value = savedLang;
+      setLanguage(savedLang);
 
-async function generate() {
-    const mode = document.getElementById("mode").value;
-    const format = document.getElementById("format").value;
-    const data = {mode, format};
+      const strict = localStorage.getItem("strict") === "true";
+      document.getElementById("strictValidation").checked = strict;
+      const minEnt = localStorage.getItem("minEntropy");
+      const maxComp = localStorage.getItem("maxCompression");
+      if (minEnt) document.getElementById("minEntropy").value = minEnt;
+      if (maxComp) document.getElementById("maxCompression").value = maxComp;
+    }
 
-    if (mode === "limited") {
+    document.getElementById("lang").onchange = (e) => setLanguage(e.target.value);
+    document.querySelectorAll("#strictValidation, #minEntropy, #maxCompression").forEach(el => {
+      el.onchange = saveSettings;
+    });
+    document.getElementById("mode").onchange = function () {
+      document.getElementById("limited_fields").classList.toggle("hidden", this.value !== "limited");
+      document.getElementById("infinite_fields").classList.toggle("hidden", this.value !== "infinite");
+    };
+    document.getElementById("bitLength").oninput = function () {
+      document.getElementById("bitValue").textContent = this.value;
+    };
+ 
+    async function generate() {
+      const mode = document.getElementById("mode").value;
+      const format = document.getElementById("format").value;
+      const data = {
+        mode,
+        format,
+        strict_validation: document.getElementById("strictValidation").checked,
+        min_entropy: parseFloat(document.getElementById("minEntropy").value),
+        max_compression: parseFloat(document.getElementById("maxCompression").value)
+      };
+
+      if (mode === "limited") {
         data.min = document.getElementById("min").value;
         data.max = document.getElementById("max").value;
         data.count = document.getElementById("count").value;
-    } else {
+      } else {
         data.bits = document.getElementById("bitLength").value;
+      }
+
+      const res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+      output.textContent = JSON.stringify(json, null, 2);
+
+      if (json.numbers) drawChart(json.numbers);
     }
 
-    const res = await fetch('/generate', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-    });
+    function exportResult() {
+      const blob = new Blob([document.getElementById("output").textContent], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "quantum_random_output.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
 
-    document.getElementById('output').textContent = JSON.stringify(await res.json(), null, 2);
-}
+    let chart;
+    function drawChart(data) {
+      const ctx = document.getElementById('histogram').getContext('2d');
+      const counts = {};
+      data.forEach(n => counts[n] = (counts[n] || 0) + 1);
+      const labels = Object.keys(counts);
+      const values = Object.values(counts);
 
-setLanguage('ru');
-</script>
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Frequency',
+            data: values,
+            backgroundColor: 'rgba(59,130,246,0.7)',
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          scales: {
+            x: { title: { display: true, text: 'Values' } },
+            y: { title: { display: true, text: 'Count' } }
+          }
+        }
+      });
+    }
+
+    // Инициализация
+    loadSettings();
+  </script>
 </body>
 </html>
