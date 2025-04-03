@@ -5,6 +5,13 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-009688?logo=fastapi)
 
 [Русская версия](README.md)
+> [!CAUTION]
+> :warning: **Under no circumstances should this be used for cryptographic
+applications.** :warning:
+> 
+> This is an educational resource and has not been designed to be secure
+> against any form of side-channel attack. The intended use of this project
+> is for learning and experimenting with ML-KEM and Kyber
 
 This web application provides a flexible interface for generating **truly random numbers** using quantum entropy obtained from the [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/). The application implements multiple generation modes and encryption methods, including a demonstration of post-quantum encryption (PQ) based on the Kyber algorithm and AES-GCM.
 
