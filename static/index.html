@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Quantum True Random Generator</title>
+</head>
+<body>
+<h2>Quantum True Random Generator</h2>
+
+<div>
+    <select id="mode">
+        <option value="limited">Ограниченный диапазон</option>
+        <option value="infinite">Истинный бесконечный режим</option>
+    </select>
+</div>
+
+<div id="limited_fields">
+    Мин: <input id="min" type="number" value="0">
+    Макс: <input id="max" type="number" value="10000">
+    Кол-во: <input id="count" type="number" value="10">
+</div>
+
+<div id="infinite_fields" style="display:none;">
+    Число битов: <input id="bitLength" type="range" min="8" max="4096" step="8" value="128"
+                        oninput="bitValue.textContent=value">
+    <span id="bitValue">128</span> бит
+</div>
+
+<button onclick="generate()">Генерировать</button>
+
+<pre id="output"></pre>
+
+<script>
+document.getElementById("mode").onchange = function() {
+    const isLimited = (this.value === "limited");
+    document.getElementById("limited_fields").style.display = isLimited ? "block" : "none";
+    document.getElementById("infinite_fields").style.display = isLimited ? "none" : "block";
+};
+
+async function generate() {
+    const mode = document.getElementById("mode").value;
+    const data = { mode: mode };
+
+    if (mode === "limited") {
+        data.min = document.getElementById("min").value;
+        data.max = document.getElementById("max").value;
+        data.count = document.getElementById("count").value;
+    } else {
+        data.bits = document.getElementById("bitLength").value;
+    }
+
+    const response = await fetch('/generate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+}
+</script>
+</body>
+</html>
