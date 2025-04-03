@@ -57,7 +57,13 @@
 
 Формула масштабирования диапазона:
 ```python
-result = min + (random_value % (max - min + 1))
+range_size = max - min + 1
+max_acceptable = (256 ** n_bytes // range_size) * range_size - 1
+
+while True:
+    value = get_random_value(n_bytes)
+    if value <= max_acceptable:
+        return min + (value % range_size)
 ```
 
 ---
