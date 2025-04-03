@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
-import os, math, zlib, base64, logging, string
+import os, math, zlib, base64, logging, string, hashlib
 import aiohttp
 from pydantic import BaseModel
 from typing import Optional, List, Union
@@ -17,16 +17,16 @@ class GenerateRequest(BaseModel):
     strict_validation: bool = True
     min_entropy: float = 7.0
     max_compression: float = 1.3
-    # Параметры для режима limited:
+    # Для режима limited:
     min: Optional[int] = 0
     max: Optional[int] = 100
     count: Optional[int] = 10
-    # Параметры для режима infinite:
+    # Для режима infinite:
     bits: Optional[int] = 128
-    # Параметры для режима password:
+    # Для режима password:
     password_length: Optional[int] = 12
-    password_complexity: Optional[str] = "medium"  # допустимые значения: low, medium, high
-    cipher_method: Optional[str] = "direct"  # допустимые значения: direct, rot13, reversed
+    password_complexity: Optional[str] = "medium"  # допустимые: low, medium, high
+    cipher_method: Optional[str] = "direct"  # допустимые: direct, rot13, reversed, aes, pq
 
 def format_number(n: int, fmt: str) -> str:
     if fmt == "hex":
@@ -130,9 +130,7 @@ async def generate(req: GenerateRequest):
         ]
         formatted = [format_number(v, fmt) for v in values]
         validator = RandomValidator(values, expected_range=(min_val, max_val))
-        response = {
-            "numbers": formatted
-        }
+        response = {"numbers": formatted}
     elif mode == "infinite":
         bits = req.bits
         byte_len = max(1, bits // 8)
@@ -140,9 +138,7 @@ async def generate(req: GenerateRequest):
         value = int.from_bytes(raw, "big")
         formatted = format_number(value, fmt)
         validator = RandomValidator(raw)
-        response = {
-            "number": formatted
-        }
+        response = {"number": formatted}
     elif mode == "password":
         complexity = req.password_complexity.lower()
         if complexity == "low":
@@ -167,18 +163,59 @@ async def generate(req: GenerateRequest):
         password = "".join(password_chars)
 
         cipher_method = req.cipher_method.lower()
+        extra_info = {}
         if cipher_method == "rot13":
             import codecs
             password = codecs.encode(password, 'rot_13')
         elif cipher_method == "reversed":
             password = password[::-1]
+        elif cipher_method == "aes":
+            try:
+                from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+                from cryptography.hazmat.primitives import padding
+                from cryptography.hazmat.backends import default_backend
+            except ImportError:
+                return JSONResponse({"error": "cryptography library is required for AES encryption."}, status_code=500)
+            key = os.urandom(16)
+            iv = os.urandom(16)
+            backend = default_backend()
+            cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+            encryptor = cipher.encryptor()
+            padder = padding.PKCS7(128).padder()
+            padded_data = padder.update(password.encode()) + padder.finalize()
+            encrypted_password = encryptor.update(padded_data) + encryptor.finalize()
+            password = base64.b64encode(encrypted_password).decode('utf-8')
+            extra_info = {
+                "encryption_key": base64.b64encode(key).decode('utf-8'),
+                "encryption_iv": base64.b64encode(iv).decode('utf-8')
+            }
+        elif cipher_method == "pq":
+            try:
+                from kyber_py.kyber import Kyber512
+                from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+            except Exception as e:
+                return JSONResponse({"error": f"PQ encryption error: {str(e)}"}, status_code=500)
+            # Используем статические методы класса Kyber512
+            public_key, secret_key = Kyber512.keygen()
+            ciphertext, shared_secret = Kyber512.encaps(public_key)
+            symmetric_key = hashlib.sha256(shared_secret).digest()
+            aesgcm = AESGCM(symmetric_key)
+            nonce = os.urandom(12)
+            encrypted_password = aesgcm.encrypt(nonce, password.encode(), None)
+            password = base64.b64encode(encrypted_password).decode('utf-8')
+            extra_info = {
+                "pq_public_key": base64.b64encode(public_key).decode('utf-8'),
+                "pq_ciphertext": base64.b64encode(ciphertext).decode('utf-8'),
+                "aes_nonce": base64.b64encode(nonce).decode('utf-8')
+            }
+
         elif cipher_method != "direct":
             return JSONResponse({"error": "Invalid cipher method"}, status_code=400)
 
         validator = RandomValidator(random_bytes)
-        response = {
-            "password": password
-        }
+        response = {"password": password}
+        if extra_info:
+            response.update(extra_info)
     else:
         return JSONResponse({"error": "Invalid mode"}, status_code=400)
 

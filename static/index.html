@@ -18,7 +18,6 @@
         <option value="ru">Русский</option>
       </select>
     </div>
-
     <div class="w-full md:w-auto">
       <label for="mode" class="block mb-1" id="mode_label">
         Mode: <span title="Limited Range – generates values in a range; Infinite – one large bit-length number; Password – generates a random password.">❓</span>
@@ -74,6 +73,8 @@
         <option value="direct" selected>Direct</option>
         <option value="rot13">ROT13</option>
         <option value="reversed">Reversed</option>
+        <option value="aes">AES</option>
+        <option value="pq">PQ (Kyber + AES-GCM)</option>
       </select>
     </div>
   </div>
@@ -239,7 +240,7 @@
       output.textContent = JSON.stringify(json, null, 2);
 
       if (json.numbers) drawChart(json.numbers);
-      else if (json.password) drawChart([]); // Очищаем диаграмму, если сгенерирован пароль
+      else if (json.password) drawChart([]); // Очистка диаграммы, если сгенерирован пароль
     }
 
     function exportResult() {

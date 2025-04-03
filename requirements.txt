@@ -1,4 +1,6 @@
 fastapi
 uvicorn[standard]
-requests
 aiohttp
+kyber-py
+cryptography
+pydantic
