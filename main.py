@@ -1,14 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import requests
-import os
-import math
-import zlib
-import random
+import requests, os, math, zlib, random, base64
 
 app = FastAPI()
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class TrueRandomValidator:
@@ -41,6 +36,17 @@ def get_quantum_random_bytes(length=64):
     except:
         return os.urandom(length)
 
+def format_number(number: int, fmt: str):
+    if fmt == 'hex':
+        return hex(number)[2:]
+    elif fmt == 'bin':
+        return bin(number)[2:]
+    elif fmt == 'base64':
+        byte_length = (number.bit_length() + 7) // 8
+        return base64.b64encode(number.to_bytes(byte_length, 'big')).decode()
+    else:
+        return str(number)
+
 @app.get("/", response_class=HTMLResponse)
 async def index():
     with open("static/index.html", encoding="utf-8") as f:
@@ -50,26 +56,25 @@ async def index():
 async def generate(request: Request):
     data = await request.json()
     mode = data.get('mode')
+    fmt = data.get('format', 'dec')
 
     if mode == 'limited':
-        min_val = int(data['min'])
-        max_val = int(data['max'])
-        count = min(int(data['count']), 1024)
+        min_val, max_val, count = int(data['min']), int(data['max']), min(int(data['count']), 1024)
         raw_bytes = get_quantum_random_bytes(count)
         numbers = [int(min_val + (b / 255) * (max_val - min_val)) for b in raw_bytes]
-        result = {"numbers": numbers}
+        formatted_numbers = [format_number(num, fmt) for num in numbers]
+        result = {"numbers": formatted_numbers}
 
     elif mode == 'infinite':
         bits = int(data.get('bits', 128))
         byte_length = max(1, bits // 8)
         raw_bytes = get_quantum_random_bytes(byte_length)
         number = int.from_bytes(raw_bytes, 'big')
-        result = {"number": str(number)}
-
+        formatted_number = format_number(number, fmt)
+        result = {"number": formatted_number}
     else:
         return JSONResponse({"error": "Invalid mode"}, status_code=400)
 
     validator = TrueRandomValidator(raw_bytes)
     result["validation"] = validator.summary()
-
     return result

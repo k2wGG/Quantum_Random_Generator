@@ -3,43 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <title>Quantum True Random Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        select, input {
+            padding: 5px;
+            margin: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+        .field-group {
+            margin-bottom: 15px;
+        }
+        label {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
-<h2>Quantum True Random Generator</h2>
+<h2 id="title">Квантовый генератор случайных чисел</h2>
 
-<div>
+<div class="field-group">
+    <label for="lang">🌐 Язык:</label>
+    <select id="lang" onchange="setLanguage(this.value)">
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="en">en English</option>
+    </select>
+</div>
+
+<div class="field-group">
+    <label for="mode" id="mode_label">Режим:</label>
     <select id="mode">
         <option value="limited">Ограниченный диапазон</option>
         <option value="infinite">Истинный бесконечный режим</option>
     </select>
 </div>
 
-<div id="limited_fields">
-    Мин: <input id="min" type="number" value="0">
-    Макс: <input id="max" type="number" value="10000">
-    Кол-во: <input id="count" type="number" value="10">
+<div id="limited_fields" class="field-group">
+    <label id="min_label">Мин:</label>
+    <input id="min" type="number" value="0">
+    <label id="max_label">Макс:</label>
+    <input id="max" type="number" value="10000">
+    <label id="count_label">Кол-во:</label>
+    <input id="count" type="number" value="10">
 </div>
 
-<div id="infinite_fields" style="display:none;">
-    Число битов: <input id="bitLength" type="range" min="8" max="4096" step="8" value="128"
-                        oninput="bitValue.textContent=value">
-    <span id="bitValue">128</span> бит
+<div id="infinite_fields" class="field-group" style="display:none;">
+    <label id="bits_label">Число битов:</label>
+    <input id="bitLength" type="range" min="8" max="4096" step="8" value="128" oninput="bitValue.textContent=value">
+    <span id="bitValue">128</span> <span id="bit_text">бит</span>
 </div>
 
-<button onclick="generate()">Генерировать</button>
+<div class="field-group">
+    <label id="format_label">Формат числа:</label>
+    <select id="format">
+        <option value="dec">DEC</option>
+        <option value="hex">HEX</option>
+        <option value="bin">BIN</option>
+        <option value="base64">Base64</option>
+    </select>
+</div>
+
+<button onclick="generate()" id="generate_btn">Генерировать</button>
 
 <pre id="output"></pre>
 
 <script>
+const translations = {
+    "ru": {
+        "title": "Квантовый генератор случайных чисел",
+        "mode_label": "Режим:",
+        "min_label": "Мин:",
+        "max_label": "Макс:",
+        "count_label": "Кол-во:",
+        "bits_label": "Число битов:",
+        "bit_text": "бит",
+        "format_label": "Формат числа:",
+        "generate_btn": "Генерировать"
+    },
+    "en": {
+        "title": "Quantum Random Number Generator",
+        "mode_label": "Mode:",
+        "min_label": "Min:",
+        "max_label": "Max:",
+        "count_label": "Count:",
+        "bits_label": "Bit length:",
+        "bit_text": "bits",
+        "format_label": "Number format:",
+        "generate_btn": "Generate"
+    }
+};
+
+function setLanguage(lang) {
+    for (const id in translations[lang]) {
+        document.getElementById(id).innerText = translations[lang][id];
+    }
+}
+
 document.getElementById("mode").onchange = function() {
-    const isLimited = (this.value === "limited");
-    document.getElementById("limited_fields").style.display = isLimited ? "block" : "none";
-    document.getElementById("infinite_fields").style.display = isLimited ? "none" : "block";
+    document.getElementById("limited_fields").style.display = (this.value === "limited") ? "block" : "none";
+    document.getElementById("infinite_fields").style.display = (this.value === "limited") ? "none" : "block";
 };
 
 async function generate() {
     const mode = document.getElementById("mode").value;
-    const data = { mode: mode };
+    const format = document.getElementById("format").value;
+    const data = {mode, format};
 
     if (mode === "limited") {
         data.min = document.getElementById("min").value;
@@ -49,15 +124,16 @@ async function generate() {
         data.bits = document.getElementById("bitLength").value;
     }
 
-    const response = await fetch('/generate', {
+    const res = await fetch('/generate', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
     });
 
-    const result = await response.json();
-    document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+    document.getElementById('output').textContent = JSON.stringify(await res.json(), null, 2);
 }
+
+setLanguage('ru');
 </script>
 </body>
 </html>
