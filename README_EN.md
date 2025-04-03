@@ -4,86 +4,97 @@
 ![Python](https://img.shields.io/badge/python-3.8%2B-green.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-009688?logo=fastapi)
 
-[🇷🇺 **Russian version**](README.md)
+[🇷🇺 Русская версия](README.md)
 
-This project provides a simple and convenient web interface for generating truly random numbers using quantum entropy from [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/).
-
----
-
-## 🔍 How it works
-
-The project operates in two main modes:
-
-### 🎯 Limited Range Mode
-
-- User specifies:
-  - minimum value;
-  - maximum value;
-  - number of random numbers.
-- The application retrieves quantum random bytes from ANU Quantum API.
-- Bytes are scaled to the specified range and returned to the user.
-
-### ♾️ True Infinite Mode
-
-- User selects the desired bit length for the random number using a slider.
-- The application retrieves the required number of bytes from the quantum server.
-- Bytes are combined into a single large number of arbitrary length (up to extremely large values).
-- The resulting number is returned to the user along with randomness analysis.
+A simple yet powerful web interface for generating **true random numbers** based on **quantum entropy** from the [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/).
 
 ---
 
-## ⚙️ True Randomness Validation
+## 🚀 Features
 
-Each generated number undergoes the following checks:
+- **Two generation modes**:
+  - 🎯 Limited Range: generate numbers within a custom range.
+  - ♾️ Infinite Mode: generate a single number with up to 4096 bits.
 
-- **Compression Ratio**  
-  The closer to `1.0`, the higher the randomness quality.
+- **Number formats**:
+  - 🔢 Decimal (`dec`)
+  - 🔡 Hexadecimal (`hex`)
+  - ⚙️ Binary (`bin`)
+  - 🎲 Base64 (`base64`)
 
-- **Entropy (bits per byte)**  
-  The closer to `8.0`, the closer to true randomness.
+- **Randomness validation**:
+  - 🔐 `Strict Validation` — reject values that don't meet quality criteria.
+  - 📈 `Min Entropy` — lower bound for bits per byte.
+  - 📉 `Max Compression Ratio` — upper limit for compressibility.
+
+- **Multilingual interface**:
+  - en English
+  - 🇷🇺 Russian
+
+- **Settings persistence** via browser `localStorage`
+- 📊 Histogram chart for generated value distribution
+- 💾 Export results as `.json`
 
 ---
 
-## 🚀 How to Run the Project
+## 🧠 How does it work?
 
-### 📌 Requirements
+### 🔬 Quantum randomness source
+We use [ANU QRNG](https://qrng.anu.edu.au/), which utilizes photonic quantum processes (beam-splitting interference) to ensure **non-deterministic outcomes** — true randomness guaranteed by quantum mechanics.
 
-- Python 3.8+
-- `pip` for package installation
+### 📐 Limited Range mode
+1. Bytes are fetched from the quantum server.
+2. Scaled into range using:
+```python
+result = min + (random_value % (max - min + 1))
+```
+3. Each result is evaluated for entropy and compressibility.
 
-### 🛠️ Installation and Startup
+### ♾️ Infinite Mode
+1. Fetches enough bytes to match bit length (e.g., 1024 bits = 128 bytes).
+2. Concatenates into one large number.
+3. Formats the output (e.g., hex, base64).
+4. Validates for entropy and compression ratio.
 
-Clone the repository:
+---
+
+## 🧪 Randomness Quality Checks
+
+Each generated value is analyzed via:
+
+- **Entropy (Shannon entropy per byte)**:
+  - 8.0 = perfect randomness
+  - 0.0 = no randomness
+
+- **Compression Ratio** (zlib):
+  - Close to 1.0 = highly random
+  - Higher values = more predictable structure
+
+With `Strict Validation` enabled, data is rejected and retried if metrics are not met.
+
+---
+
+## ⚙️ Installation & Run
 
 ```bash
 git clone https://github.com/k2wGG/Quantum_Random_Generator.git
 cd Quantum_Random_Generator
-```
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
-```
-
-Run the server:
-
-```bash
 uvicorn main:app --reload
 ```
 
-Open your web browser and navigate to:
-
-```
-http://127.0.0.1:8000
-```
+Visit: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ---
 
-## 🛠️ Technologies and Resources
+## 🛠️ Technologies
 
-- [FastAPI](https://fastapi.tiangolo.com/) — backend framework
-- [ANU QRNG](https://qrng.anu.edu.au/) — quantum entropy source
-- [Uvicorn](https://www.uvicorn.org/) — FastAPI server
+- [FastAPI](https://fastapi.tiangolo.com/) — modern Python web framework
+- [Uvicorn](https://www.uvicorn.org/) — ASGI server for FastAPI
+- [Tailwind CSS](https://tailwindcss.com/) — UI styling
+- [Chart.js](https://www.chartjs.org/) — graph visualization
+- [ANU QRNG](https://qrng.anu.edu.au/) — quantum random number source
 
 ---
+
+Created with ❤️ for cryptography, experimentation, and data entropy research.
