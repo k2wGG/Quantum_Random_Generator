@@ -20,7 +20,7 @@
     </div>
     <div class="w-full md:w-auto">
       <label for="mode" class="block mb-1" id="mode_label">
-        Mode: <span title="Limited Range – generates values in a range; Infinite – one large bit-length number; Password – generates a random password.">❓</span>
+        Mode: <span title="Limited Range – generates numbers in a range; Infinite – one large bit-length number; Password – generates a random password.">❓</span>
       </label>
       <select id="mode" class="p-2 text-black rounded">
         <option value="limited">Limited Range</option>
@@ -240,7 +240,7 @@
       output.textContent = JSON.stringify(json, null, 2);
 
       if (json.numbers) drawChart(json.numbers);
-      else if (json.password) drawChart([]); // Очистка диаграммы, если сгенерирован пароль
+      else if (json.password) drawChart([]); // Очистка диаграммы для режимов, где нет числового распределения
     }
 
     function exportResult() {

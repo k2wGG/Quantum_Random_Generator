@@ -195,20 +195,18 @@ async def generate(req: GenerateRequest):
                 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
             except Exception as e:
                 return JSONResponse({"error": f"PQ encryption error: {str(e)}"}, status_code=500)
-            # Используем статические методы класса Kyber512
             public_key, secret_key = Kyber512.keygen()
             ciphertext, shared_secret = Kyber512.encaps(public_key)
             symmetric_key = hashlib.sha256(shared_secret).digest()
             aesgcm = AESGCM(symmetric_key)
             nonce = os.urandom(12)
-            encrypted_password = aesgcm.encrypt(nonce, password.encode(), None)
-            password = base64.b64encode(encrypted_password).decode('utf-8')
+            encrypted_password_bytes = aesgcm.encrypt(nonce, password.encode(), None)
+            password = base64.b64encode(encrypted_password_bytes).decode('utf-8')
             extra_info = {
                 "pq_public_key": base64.b64encode(public_key).decode('utf-8'),
                 "pq_ciphertext": base64.b64encode(ciphertext).decode('utf-8'),
                 "aes_nonce": base64.b64encode(nonce).decode('utf-8')
             }
-
         elif cipher_method != "direct":
             return JSONResponse({"error": "Invalid cipher method"}, status_code=400)
 
