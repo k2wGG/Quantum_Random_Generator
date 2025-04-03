@@ -4,9 +4,9 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-green.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-009688?logo=fastapi)
 
-[Русский version](README.md)
+[Русская версия](README.md)
 
-This web application provides a flexible interface for generating **truly random numbers** using quantum entropy obtained from the [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/). The project implements multiple generation modes and encryption methods, including a demonstration of post-quantum encryption (PQ) based on the Kyber algorithm and AES-GCM.
+This web application provides a flexible interface for generating **truly random numbers** using quantum entropy obtained from the [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/). The application implements multiple generation modes and encryption methods, including a demonstration of post-quantum encryption (PQ) based on the Kyber algorithm and AES-GCM.
 
 ```mermaid
 flowchart TD
@@ -59,23 +59,57 @@ flowchart TD
   - **Password:** Generate a random password with selectable complexity.
 
 - **Output Formats:**  
-  Supports Decimal, Hex, Binary, and Base64.
+  Supported formats include Decimal, Hex, Binary, and Base64.
 
 - **Password Encryption Methods:**
   - **Direct:** No encryption.
   - **ROT13:** A simple symmetric transformation.
-  - **Reversed:** Reverses the string.
+  - **Reversed:** Reverse the string.
   - **AES:** Encryption using AES-CBC with PKCS7 padding.
-  - **PQ (Kyber + AES-GCM):** Post-quantum encryption that uses Kyber (via kyber-py) for key encapsulation and AES-GCM for symmetric encryption.
+  - **PQ (Kyber + AES-GCM):** Post-quantum encryption using the Kyber algorithm (via [kyber-py](https://pypi.org/project/kyber-py/)) for key encapsulation and AES-GCM for symmetric encryption.
 
 - **Quantum Entropy:**  
-  The application retrieves quantum random bytes from the ANU server. If the API is unavailable, it falls back to `os.urandom`.
+  Quantum random bytes are fetched from the ANU API. If the API is unavailable, the system falls back to `os.urandom`.
 
 - **Randomness Validation:**  
-  The application computes entropy, compression ratio (using zlib), and performs a χ²-test to evaluate data quality.
+  The system computes entropy, compression ratio (using zlib), and performs a χ²-test to assess data quality.
 
 - **Modern Web Interface:**  
-  Built with [FastAPI](https://fastapi.tiangolo.com/) and [Uvicorn](https://uvicorn.org/), styled using [Tailwind CSS](https://tailwindcss.com/), with distribution visualization powered by [Chart.js](https://www.chartjs.org/).
+  Built with [FastAPI](https://fastapi.tiangolo.com/) and served with [Uvicorn](https://uvicorn.org/), styled using [Tailwind CSS](https://tailwindcss.com/), and includes data visualization via [Chart.js](https://www.chartjs.org/).
+
+---
+
+## 📐 Mathematical Foundations
+
+### Shannon Entropy
+
+The entropy is computed using the formula:
+
+```
+H = -∑( pᵢ * log₂(pᵢ) )
+```
+
+where `pᵢ` is the probability of occurrence for the i-th byte. An entropy close to 8 bits/byte indicates highly random data.
+
+### Compression Ratio
+
+The compression ratio is calculated as:
+
+```
+C = (compressed data size) / (original data size)
+```
+
+A value close to 1 indicates that the data is poorly compressible, implying high randomness.
+
+### χ²-Test
+
+The χ²-test is applied to check the uniformity of the distribution:
+
+```
+χ² = ∑( (Oᵢ - E)² / E )
+```
+
+where `Oᵢ` is the observed count and `E` is the expected count under a uniform distribution. A result close to the tabulated value for a given degree of freedom suggests a uniform distribution.
 
 ---
 
@@ -88,7 +122,7 @@ flowchart TD
    cd Quantum_Random_Generator
    ```
 
-2. **Create and activate a virtual environment (recommended Python 3.10 or 3.11):**
+2. **Create and activate a virtual environment (recommended: Python 3.10 or 3.11):**
 
    - Windows:
      ```bash
@@ -128,41 +162,16 @@ flowchart TD
 
 ---
 
-## 📐 How It Works
-
-- **Random Number Generation:**  
-  The application requests quantum random bytes from the ANU server. If the API is unavailable, it uses `os.urandom` as a fallback.
-
-- **"Password" Mode:**  
-  A random password is generated based on a chosen character set (low, medium, or high complexity). After generation, the password can be encrypted using one of the methods:
-  - **AES:** Encrypts using AES-CBC.
-  - **PQ (Kyber + AES-GCM):** Demonstrates post-quantum encryption where Kyber (via kyber-py) encapsulates a key and the shared secret is used (after SHA256 derivation) with AES-GCM to encrypt the password.
-
-- **Validation:**  
-  The application calculates entropy, compression ratio, and performs a χ²-test to assess the quality of the random data.
-
----
-
 ## 🔒 Quantum and Post-Quantum Technologies
 
 - **Quantum Entropy:**  
   Utilized to generate truly random numbers based on quantum processes.
 
 - **Post-Quantum Encryption:**  
-  The PQ mode demonstrates a hybrid encryption scheme where Kyber (via kyber-py) is used for key encapsulation and AES-GCM is applied for symmetric encryption. This approach enhances the system's resilience against quantum attacks.
+  The PQ mode demonstrates a hybrid encryption scheme where Kyber (via kyber-py) is used for key encapsulation, and the shared secret is processed via SHA256 to derive a symmetric key used by AES-GCM. This approach enhances the system's resilience against quantum attacks.
 
-- **Potential Extensions:**  
-  Future enhancements could include integrating Quantum Key Distribution (QKD) or other quantum-resistant protocols for secure key exchange.
-
----
-
-## 📋 Additional Enhancements
-
-- **Logging:**  
-  The application logs errors (for example, if the quantum API is unavailable).
-
-- **Flexible Configuration:**  
-  Users can choose the generation mode, output format, password complexity, and encryption method via the web interface.
+- **Future Extensions:**  
+  In the future, quantum key distribution (QKD) and other quantum-resistant protocols could be integrated for secure key exchange.
 
 ---
 
