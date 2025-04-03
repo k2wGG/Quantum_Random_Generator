@@ -1,124 +1,128 @@
 # 🎲 Quantum True Random Generator
 
 ![Quantum](https://img.shields.io/badge/random-quantum-blue.svg)
-![Python](https://img.shields.io/badge/python-3.8%2B-green.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-green.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-009688?logo=fastapi)
 
-A simple and flexible web interface for generating **truly random numbers** based on **quantum entropy** provided by the [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/). This project includes advanced randomness validation, asynchronous requests, and statistical quality evaluation.
+[Русский version](README.md)
+
+This web application provides a flexible interface for generating **truly random numbers** using quantum entropy obtained from the [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/). The project implements multiple generation modes and encryption methods, including a demonstration of post-quantum encryption (PQ) based on the Kyber algorithm and AES-GCM.
 
 ---
 
 ## 🚀 Features
 
-- **Two Generation Modes**:
-  - 🎯 **Limited Range:** Generate numbers within a user-defined range (`min` to `max`).
-  - ♾️ **Infinite Mode:** Generate a single large number with a customizable bit length (from 8 up to 4096 bits).
+- **Generation Modes:**
+  - **Limited Range:** Generate numbers within a user-defined range (min–max).
+  - **Infinite:** Generate one large number with a specified bit-length.
+  - **Password:** Generate a random password with selectable complexity.
 
-- **Output Formats Supported**:
-  - 🔢 Decimal (`dec`)
-  - 🔡 Hexadecimal (`hex`)
-  - ⚙️ Binary (`bin`)
-  - 🎲 Base64 (`base64`)
+- **Output Formats:**  
+  Supports Decimal, Hex, Binary, and Base64.
 
-- **Advanced Randomness Validation**:
-  - 🔐 **Strict Validation:** Rejects data if entropy or compression ratio thresholds are not met.
-  - 📈 **Min Entropy:** Minimum Shannon entropy per byte (up to 8.0, where 8.0 indicates perfect randomness).
-  - 📉 **Max Compression Ratio:** Maximum allowed compression ratio (closer to 1.0 is better).
-  - 📊 **χ² Test:** Statistical test to verify the uniform distribution of generated numbers.
-  - 📈 **Frequency Distribution:** Calculation and return of a frequency table for visual analysis of value uniqueness and distribution.
+- **Password Encryption Methods:**
+  - **Direct:** No encryption.
+  - **ROT13:** A simple symmetric transformation.
+  - **Reversed:** Reverses the string.
+  - **AES:** Encryption using AES-CBC with PKCS7 padding.
+  - **PQ (Kyber + AES-GCM):** Post-quantum encryption that uses Kyber (via kyber-py) for key encapsulation and AES-GCM for symmetric encryption.
 
-- **Asynchronous Requests**:
-  - Uses [aiohttp](https://docs.aiohttp.org/) for non-blocking retrieval of quantum random bytes.
+- **Quantum Entropy:**  
+  The application retrieves quantum random bytes from the ANU server. If the API is unavailable, it falls back to `os.urandom`.
 
-- **Bilingual Interface**:
-  - 🇺🇸 English
-  - [Русский](README.md)
+- **Randomness Validation:**  
+  The application computes entropy, compression ratio (using zlib), and performs a χ²-test to evaluate data quality.
 
-- **Settings Persistence**:
-  - Saves user preferences in the browser’s `localStorage`.
-
-- 📊 **Histogram Visualization**:
-  - Displays the frequency distribution of generated numbers using [Chart.js](https://www.chartjs.org/).
-
-- 💾 **Export Results:**
-  - Allows exporting the generated results as a `.json` file.
+- **Modern Web Interface:**  
+  Built with [FastAPI](https://fastapi.tiangolo.com/) and [Uvicorn](https://uvicorn.org/), styled using [Tailwind CSS](https://tailwindcss.com/), with distribution visualization powered by [Chart.js](https://www.chartjs.org/).
 
 ---
 
-## 🧠 How Does It Work?
+## 🛠️ Installation and Running
 
-### 🔬 Quantum Source of Randomness
-The project utilizes the [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/) which obtains data from photon interferometers. This process ensures **true quantum randomness**.
+1. **Clone the repository:**
 
-### 📐 Limited Range Mode
-1. **Asynchronous Request:** The required number of bytes is fetched asynchronously using aiohttp.
-2. **Scaling:** The bytes are converted to numbers and scaled to fit within the range defined by `min` and `max`.
-3. **Validation:**
-   - Calculates **Shannon Entropy** to assess randomness.
-   - Determines the **Compression Ratio** (via zlib) — less compressible data indicates higher randomness.
-   - Performs a **χ² Test** to verify the uniformity of the distribution.
-4. **Distribution Analysis:** Computes a frequency table for visual inspection of the value distribution.
+   ```bash
+   git clone https://github.com/your_username/Quantum_Random_Generator.git
+   cd Quantum_Random_Generator
+   ```
 
-### ♾️ Infinite Mode
-1. **Number Generation:** Asynchronously retrieves bytes to construct a single large number of a specified bit length (up to 4096 bits).
-2. **Formatting:** The number is formatted into the selected output format (dec, hex, bin, base64).
-3. **Validation:** Checks the number for sufficient entropy and an acceptable compression ratio.
+2. **Create and activate a virtual environment (recommended Python 3.10 or 3.11):**
 
-A sample scaling algorithm:
-```python
-range_size = max - min + 1
-max_acceptable = (256 ** n_bytes // range_size) * range_size - 1
+   - Windows:
+     ```bash
+     python -m venv venv
+     venv\Scripts\activate
+     ```
+   - Linux/Mac:
+     ```bash
+     python3 -m venv venv
+     source venv/bin/activate
+     ```
 
-while True:
-    value = get_random_value(n_bytes)
-    if value <= max_acceptable:
-        return min + (value % range_size)
-```
+3. **Install dependencies:**
 
----
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 📋 Randomness Quality Assurance
+   *requirements.txt*:
+   ```txt
+   fastapi
+   uvicorn[standard]
+   aiohttp
+   kyber-py
+   cryptography
+   pydantic
+   ```
 
-Each block of generated data undergoes comprehensive validation:
+4. **Run the server:**
 
-- **Entropy (Shannon Entropy):**
-  - 8.0 bits/byte indicates perfect randomness.
-  - Values below the threshold may signal insufficient randomness.
+   ```bash
+   uvicorn main:app --reload
+   ```
 
-- **Compression Ratio:**
-  - Ratios close to 1.0 indicate high randomness, as the data is less compressible.
-
-- **χ² Test:**
-  - Conducted to assess the uniformity of the generated numbers’ distribution.
-  - The test results (χ² statistic and degrees of freedom) are included in the report.
-
-If **Strict Validation** is enabled, generation is repeated until all thresholds are met.
+5. **Open the application in your browser:**  
+   Navigate to [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ---
 
-## ⚙️ Installation and Running
+## 📐 How It Works
 
-```bash
-git clone https://github.com/your_username/Quantum_Random_Generator.git
-cd Quantum_Random_Generator
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
+- **Random Number Generation:**  
+  The application requests quantum random bytes from the ANU server. If the API is unavailable, it uses `os.urandom` as a fallback.
 
-Open your browser at: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **"Password" Mode:**  
+  A random password is generated based on a chosen character set (low, medium, or high complexity). After generation, the password can be encrypted using one of the methods:
+  - **AES:** Encrypts using AES-CBC.
+  - **PQ (Kyber + AES-GCM):** Demonstrates post-quantum encryption where Kyber (via kyber-py) encapsulates a key and the shared secret is used (after SHA256 derivation) with AES-GCM to encrypt the password.
 
----
-
-## 🛠️ Technologies Used
-
-- [FastAPI](https://fastapi.tiangolo.com/) — Asynchronous Python web framework.
-- [Uvicorn](https://www.uvicorn.org/) — ASGI server for FastAPI.
-- [aiohttp](https://docs.aiohttp.org/) — Asynchronous HTTP client.
-- [Tailwind CSS](https://tailwindcss.com/) — For styling the web interface.
-- [Chart.js](https://www.chartjs.org/) — For visualizing the frequency distribution.
-- [ANU QRNG](https://qrng.anu.edu.au/) — Quantum random number generator.
-- [Pydantic](https://pydantic-docs.helpmanual.io/) — For data validation and type annotations.
+- **Validation:**  
+  The application calculates entropy, compression ratio, and performs a χ²-test to assess the quality of the random data.
 
 ---
 
-Developed with ❤️ for experiments, cryptography, and entropy research.
+## 🔒 Quantum and Post-Quantum Technologies
+
+- **Quantum Entropy:**  
+  Utilized to generate truly random numbers based on quantum processes.
+
+- **Post-Quantum Encryption:**  
+  The PQ mode demonstrates a hybrid encryption scheme where Kyber (via kyber-py) is used for key encapsulation and AES-GCM is applied for symmetric encryption. This approach enhances the system's resilience against quantum attacks.
+
+- **Potential Extensions:**  
+  Future enhancements could include integrating Quantum Key Distribution (QKD) or other quantum-resistant protocols for secure key exchange.
+
+---
+
+## 📋 Additional Enhancements
+
+- **Logging:**  
+  The application logs errors (for example, if the quantum API is unavailable).
+
+- **Flexible Configuration:**  
+  Users can choose the generation mode, output format, password complexity, and encryption method via the web interface.
+
+---
+
+Developed with ❤️ for experimentation, cryptographic research, and quantum randomness.
