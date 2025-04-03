@@ -46,7 +46,13 @@ We use [ANU QRNG](https://qrng.anu.edu.au/), which utilizes photonic quantum pro
 1. Bytes are fetched from the quantum server.
 2. Scaled into range using:
 ```python
-result = min + (random_value % (max - min + 1))
+range_size = max - min + 1
+max_acceptable = (256 ** n_bytes // range_size) * range_size - 1
+
+while True:
+    value = get_random_value(n_bytes)
+    if value <= max_acceptable:
+        return min + (value % range_size)
 ```
 3. Each result is evaluated for entropy and compressibility.
 
