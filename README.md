@@ -6,6 +6,14 @@
 
 [en English version](README_EN.md)
 
+> [!CAUTION]
+> :warning: **Under no circumstances should this be used for cryptographic
+applications.** :warning:
+> 
+> This is an educational resource and has not been designed to be secure
+> against any form of side-channel attack. The intended use of this project
+> is for learning and experimenting with ML-KEM and Kyber
+
 Это веб-приложение предоставляет гибкий интерфейс для генерации **истинно случайных чисел** с использованием квантовой энтропии, получаемой с [ANU Quantum Random Numbers Server](https://qrng.anu.edu.au/). Приложение реализует несколько режимов генерации и шифрования, включая демонстрационное постквантовое шифрование (PQ) на основе алгоритма Kyber и AES-GCM.
 
 ```mermaid
